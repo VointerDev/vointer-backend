@@ -7,12 +7,13 @@ const { sendVerificationEmail } = require("../utils/email");
 router.post("/register", async (req, res) => {
   const { name, email, password, company } = req.body;
 
-  // Trim whitespace
+  // Trim whitespace before saving to DB
   const trimmedName = name.trim();
   const trimmedCompany = company.trim();
   const trimmedEmail = email.trim();
   const trimmedPassword = password.trim();
 
+  // Validate if any required field is empty
   if (!trimmedName || !trimmedCompany || !trimmedEmail || !trimmedPassword) {
     return res.status(400).json({ msg: "Please fill in all fields." });
   }
