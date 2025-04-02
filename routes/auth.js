@@ -5,16 +5,24 @@ const User = require("../models/User");
 const { sendVerificationEmail } = require("../utils/email");
 
 router.post("/register", async (req, res) => {
-  console.log(req.body); // Log the incoming data for debugging
-
   const { name, email, password, company } = req.body;
+
+  // Trim whitespace
+  const trimmedName = name.trim();
+  const trimmedCompany = company.trim();
+  const trimmedEmail = email.trim();
+  const trimmedPassword = password.trim();
+
+  if (!trimmedName || !trimmedCompany || !trimmedEmail || !trimmedPassword) {
+    return res.status(400).json({ msg: "Please fill in all fields." });
+  }
 
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ msg: "User already exists" });
 
-    const hash = await bcrypt.hash(password, 10);
-    const user = new User({ name, company, email, password: hash });
+    const hash = await bcrypt.hash(trimmedPassword, 10);
+    const user = new User({ name: trimmedName, company: trimmedCompany, email: trimmedEmail, password: hash });
 
     await user.save();
 
@@ -29,7 +37,6 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ msg: "Server error during registration." });
   }
 });
-
 
 router.get("/verify", async (req, res) => {
   try {
