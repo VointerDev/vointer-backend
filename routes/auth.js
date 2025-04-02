@@ -5,6 +5,8 @@ const User = require("../models/User");
 const { sendVerificationEmail } = require("../utils/email");
 
 router.post("/register", async (req, res) => {
+  console.log(req.body); // Log the incoming data for debugging
+
   const { name, email, password, company } = req.body;
 
   try {
@@ -16,10 +18,8 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    // ✅ Generate verification token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // ✅ Send confirmation email via Resend
     await sendVerificationEmail(email, token);
 
     res.status(201).json({ msg: "User created. Please check your email to verify your account." });
@@ -29,6 +29,7 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ msg: "Server error during registration." });
   }
 });
+
 
 router.get("/verify", async (req, res) => {
   try {
