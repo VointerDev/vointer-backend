@@ -1,4 +1,7 @@
+const router = require("express").Router();
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 const { sendVerificationEmail } = require("../utils/email");
 
 router.post("/register", async (req, res) => {
@@ -38,3 +41,4 @@ router.get("/verify", async (req, res) => {
   }
 });
 
+module.exports = router;
