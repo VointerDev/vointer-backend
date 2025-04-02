@@ -1,23 +1,26 @@
 // utils/email.js
-const nodemailer = require("nodemailer");
+const Resend = require('resend');  
+const resend = new Resend(process.env.RESEND_API_KEY);  
 
-const sendVerificationEmail = (email, token) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail", // Or another provider
-    auth: {
-      user: process.env.EMAIL_USER, // Use your email
-      pass: process.env.EMAIL_PASS, // Use your email password or app password
-    },
-  });
+// Function to send verification email
+const sendVerificationEmail = async (email, token) => {
+  try {
+    const response = await resend.emails.send({
+      from: 'lefteris@cercino.se',  
+      to: email,
+      subject: 'Verify Your Email Address',
+      html: `
+        <p>Click the link below to verify your email:</p>
+        <a href="${process.env.BASE_URL}/verify?token=${token}">Verify Email</a>
+      `,
+    });
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Verify Your Email Address",
-    text: `Click this link to verify your account: ${process.env.BASE_URL}/verify?token=${token}`,
-  };
-
-  return transporter.sendMail(mailOptions);
+    return response;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;  // If something goes wrong, we will throw an error
+  }
 };
 
+// Export the function so it can be used elsewhere
 module.exports = { sendVerificationEmail };
