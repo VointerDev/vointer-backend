@@ -1,12 +1,13 @@
-// utils/email.js
-const Resend = require('resend');  
-const resend = new Resend(process.env.RESEND_API_KEY);  
+const Resend = require('resend');  // Import Resend SDK
+
+// Use Resend function directly (no need for 'new' keyword)
+const resend = Resend(process.env.RESEND_API_KEY);  // Initialize with API key
 
 // Function to send verification email
 const sendVerificationEmail = async (email, token) => {
   try {
     const response = await resend.emails.send({
-      from: 'lefteris@cercino.se',  
+      from: 'support@vointer.com',  // Replace with your "from" email address
       to: email,
       subject: 'Verify Your Email Address',
       html: `
