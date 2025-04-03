@@ -1,14 +1,12 @@
 const { Resend } = require('resend');
+
+// ✅ Only ONE declaration of `resend`
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-
-// Initialize Resend correctly
-const resend = new Resend(process.env.RESEND_API_KEY);  // Using the constructor
 
 const sendVerificationEmail = async (email, token) => {
   try {
-    const response = await resend.sendEmail({
-      from: 'support@vointer.com',  // Replace with your "from" email address
+    const response = await resend.emails.send({ // ✅ Correct method: resend.emails.send
+      from: 'support@vointer.com',
       to: email,
       subject: 'Verify Your Email Address',
       html: `
@@ -20,7 +18,7 @@ const sendVerificationEmail = async (email, token) => {
     return response;
   } catch (error) {
     console.error('Error sending email:', error);
-    throw error;  // If something goes wrong, we will throw an error
+    throw error;
   }
 };
 
