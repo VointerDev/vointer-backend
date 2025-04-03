@@ -1,7 +1,6 @@
 const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY); // ✅ Single declaration
 
-// ✅ Only ONE declaration of `resend`
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendVerificationEmail = async (email, token) => {
   try {
