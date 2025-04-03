@@ -21,4 +21,7 @@ const sendVerificationEmail = async (email, token) => {
   }
 };
 
+console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY); // 👀 DEBUG
+
+
 module.exports = { sendVerificationEmail };
