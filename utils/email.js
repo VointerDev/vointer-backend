@@ -1,12 +1,13 @@
-const Resend = require('resend');  // Import Resend SDK
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Use Resend function directly (no need for 'new' keyword)
-const resend = Resend(process.env.RESEND_API_KEY);  // Initialize with API key
 
-// Function to send verification email
+// Initialize Resend correctly
+const resend = new Resend(process.env.RESEND_API_KEY);  // Using the constructor
+
 const sendVerificationEmail = async (email, token) => {
   try {
-    const response = await resend.emails.send({
+    const response = await resend.sendEmail({
       from: 'support@vointer.com',  // Replace with your "from" email address
       to: email,
       subject: 'Verify Your Email Address',
@@ -23,5 +24,4 @@ const sendVerificationEmail = async (email, token) => {
   }
 };
 
-// Export the function so it can be used elsewhere
 module.exports = { sendVerificationEmail };
