@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY); // ✅ Single declaration
 const sendVerificationEmail = async (email, token) => {
   try {
     const response = await resend.emails.send({ // ✅ Correct method: resend.emails.send
-      from: 'support@vointer.com',
+      from: 'lefteris@cercino.se',
       to: email,
       subject: 'Verify Your Email Address',
       html: `
