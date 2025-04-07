@@ -3,9 +3,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const { sendVerificationEmail } = require("../utils/email");
-
 const { google } = require("googleapis");
 
+// === Google OAuth Setup ===
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
@@ -52,6 +52,33 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// === LOGIN ===
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ msg: "Incorrect password" });
+
+    if (!user.emailVerified) {
+      return res.status(403).json({ msg: "Please verify your email first" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({ token });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ msg: "Server error during login" });
+  }
+});
+
 // === EMAIL VERIFICATION ===
 router.get("/verify", async (req, res) => {
   try {
@@ -81,19 +108,18 @@ router.get("/google/callback", async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    // For now, just show tokens in JSON
-    res.json(tokens);
-
-    // ❗ Vill du spara tokens till en användare?
+    // 🔒 Want to save Google tokens to user later? Enable this.
     // const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
     // await User.findByIdAndUpdate(decoded.userId, { googleTokens: tokens });
 
+    res.json(tokens);
   } catch (err) {
     console.error("Google callback error:", err);
     res.status(500).send("Google Auth Failed");
   }
 });
 
+// === VERIFY JWT TOKEN (FOR FRONTEND) ===
 router.post("/verify-token", (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
