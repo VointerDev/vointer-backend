@@ -2,7 +2,7 @@ const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
-const { sendVerificationEmail } = require("../utils/email");
+const { sendVerificationEmail, sendResetEmail } = require("../utils/email");
 const { google } = require("googleapis");
 
 // === Google OAuth Setup ===
@@ -36,7 +36,7 @@ router.post("/register", async (req, res) => {
       name: trimmedName,
       company: trimmedCompany,
       email: trimmedEmail,
-      password: hash
+      password: hash,
     });
 
     await user.save();
@@ -45,7 +45,6 @@ router.post("/register", async (req, res) => {
     await sendVerificationEmail(email, token);
 
     res.status(201).json({ msg: "User created. Please check your email to verify your account." });
-
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ msg: "Server error during registration." });
@@ -72,10 +71,42 @@ router.post("/login", async (req, res) => {
     });
 
     res.status(200).json({ token });
-
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ msg: "Server error during login" });
+  }
+});
+
+// === FORGOT PASSWORD ===
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: "User not found." });
+
+    if (!user.password) return res.status(403).json({ msg: "Password reset is only available for manually created accounts." });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    await sendResetEmail(email, token);
+
+    res.status(200).json({ msg: "Password reset link sent to your email." });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ msg: "Server error." });
+  }
+});
+
+// === RESET PASSWORD ===
+router.post("/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const { userId } = jwt.verify(token, process.env.JWT_SECRET);
+    const hash = await bcrypt.hash(password, 10);
+    await User.findByIdAndUpdate(userId, { password: hash });
+    res.status(200).json({ msg: "Password updated successfully." });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(400).json({ msg: "Invalid or expired token." });
   }
 });
 
